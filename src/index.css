@@ -1,6 +1,6 @@
 :root {
   --bg-primary: #0f1117;
-  --bg-secondary: #161b22;
+  --bg-secondary: #23272f;
   --bg-tertiary: #21262d;
   --text-primary: #c9d1d9;
   --text-secondary: #8b949e;
@@ -22,7 +22,8 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
-  overflow: hidden; /* App-like feel */
+  overflow: hidden;
+  /* App-like feel */
 }
 
 #root {
@@ -52,14 +53,37 @@ body {
 }
 
 /* Utility Classes */
-.flex { display: flex; }
-.flex-col { flex-direction: column; }
-.items-center { align-items: center; }
-.justify-between { justify-content: space-between; }
-.h-full { height: 100%; }
-.w-full { width: 100%; }
-.p-4 { padding: 1rem; }
-.gap-4 { gap: 1rem; }
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.p-4 {
+  padding: 1rem;
+}
+
+.gap-4 {
+  gap: 1rem;
+}
 
 .btn {
   background: var(--bg-tertiary);

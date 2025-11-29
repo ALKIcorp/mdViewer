@@ -7,17 +7,49 @@
 .editor-pane,
 .preview-pane {
     height: 100%;
+    overflow-x: auto;
+    /* Horizontal scroll when content clips */
     overflow-y: auto;
-    padding: 1rem;
+    padding: 0;
     min-width: 200px;
     /* Minimum width to keep panes visible */
 }
 
 .editor-pane {
-    padding: 0;
     position: relative;
     /* Required for absolute positioning of indicator */
-    /* CodeMirror handles padding */
+    background-color: var(--bg-secondary);
+}
+
+/* Subtle vertical line indicator at text width limit */
+.editor-pane::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 900px;
+    bottom: 0;
+    width: 1px;
+    background-color: rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Content wrapper with max-width (Word-style) */
+/* Removed auto-centering to allow horizontal scroll when pane is narrower than content */
+.editor-pane .cm-editor {
+    max-width: 900px;
+    margin: 0;
+    padding: 1rem;
+    width: 900px;
+    /* Fixed width instead of responsive */
+}
+
+.preview-pane .preview-content-wrapper {
+    max-width: 900px;
+    margin: 0;
+    padding: 2rem;
+    width: 900px;
+    /* Fixed width instead of responsive */
 }
 
 /* Draggable divider */
@@ -84,11 +116,6 @@
 .preview-pane {
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    padding: 2rem;
-    max-width: 900px;
-    /* Readability */
-    margin: 0 auto;
-    /* Center if single view, but here it's split */
 }
 
 /* Markdown Body Styles (Basic Reset/Theme) */

@@ -230,12 +230,14 @@ export const SplitView: React.FC<SplitViewProps> = ({ content, onChange, setEdit
                 ref={previewPaneRef}
                 style={{ width: `${100 - editorWidth}%` }}
             >
-                <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeRaw]}
-                >
-                    {content}
-                </ReactMarkdown>
+                <div className="preview-content-wrapper">
+                    <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        rehypePlugins={[rehypeRaw]}
+                    >
+                        {content}
+                    </ReactMarkdown>
+                </div>
             </div>
         </div>
     );
