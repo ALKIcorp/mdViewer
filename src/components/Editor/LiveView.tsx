@@ -47,7 +47,7 @@ export const LiveView: React.FC<LiveViewProps> = (props) => {
     // If we switch back to LiveView from SplitView, the editor is re-mounted, so it picks up the new content via defaultValueCtx.
 
     return (
-        <div className="live-view">
+        <div className="live-view" id="markdown-preview-container">
             <MilkdownProvider>
                 <LiveViewEditor {...props} />
             </MilkdownProvider>

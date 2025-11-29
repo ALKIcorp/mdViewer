@@ -1,0 +1,103 @@
+# MDViewer – V2 Patch Notes and Required Implementations
+# Follow every instruction exactly. No deviations. No extra features.
+
+===========================================================
+1. EXPORT BUTTON REWORK
+===========================================================
+
+Replace the current export buttons (MD / DOCX / PDF) with a single "Export" button.
+Clicking "Export" opens a small dropdown menu with 3 options:
+   - Export as .md
+   - Export as .docx
+   - Export as .pdf
+
+Dropdown requirements:
+   - Must match the existing dark theme colors.
+   - Hover tooltips still function (“Download as Markdown”, etc.)
+   - Export logic stays the same, only the UI changes.
+
+===========================================================
+2. BLOCK INSERTION FIX (PLUS BUTTON)
+===========================================================
+
+The "+" button on each block card must insert the block into the editor
+EVEN while in Split View or Live View.
+Do NOT refresh or reset editor content on insertion.
+
+===========================================================
+3. TOOLTIP Z-INDEX FIX
+===========================================================
+
+Increase z-index of the “?” tooltips so they float ABOVE all UI layers.
+Tooltips must remain fully visible and not clipped by container boundaries.
+
+===========================================================
+4. DRAG-AND-DROP BLOCK INSERTION (NEW FEATURE)
+===========================================================
+
+Add drag-and-drop support for block cards.
+While dragging into the editor:
+   - Show a horizontal highlight line indicating the insertion position.
+   - Line spans the full width of the editor.
+   - Line follows cursor dynamically.
+
+On drop:
+   - Insert the correct markdown block at the highlighted location.
+   - Must use sample text for placeholder content.
+   - Must work in Split View and Live View.
+
+===========================================================
+5. NEW BLOCK TYPE: HORIZONTAL DIVIDER
+===========================================================
+
+Add a new block card called "Divider".
+This block has NO preview text (visual only).
+
+Insertion result:
+---
+Tooltip: "Horizontal divider line. Use to separate sections."
+
+===========================================================
+6. TEXT FORMATTING TOOLBAR (NEW FEATURE)
+===========================================================
+
+Add a formatting toolbar in the top header with:
+   - Bold
+   - Italic
+   - Underline
+   - Strikethrough
+   - UPPERCASE
+   - lowercase
+   - Alignment (left, center, right, justify)
+
+Behavior rules:
+   - Works on highlighted text.
+   - If no text selected, insert formatting at cursor.
+   - Must work in Split View.
+   - Must not break markdown rendering.
+
+Markdown formatting rules:
+   - Bold: **text**
+   - Italic: *text*
+   - Underline: <u>text</u>
+   - Strikethrough: ~~text~~
+   - Uppercase/lowercase: transform text directly
+   - Alignment:
+        left: default
+        center: <div align="center">...</div>
+        right: <div align="right">...</div>
+        justify: <div align="justify">...</div>
+
+===========================================================
+7. GENERAL REQUIREMENTS
+===========================================================
+
+Do NOT break existing MDViewer functionality.
+Keep dark theme intact.
+Sample text previews must continue updating live.
+Block previews must still render using sample text.
+Code must remain modular, readable, and Vite compatible.
+
+===========================================================
+END OF FILE
+===========================================================

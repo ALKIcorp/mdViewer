@@ -1,0 +1,162 @@
+.block-panel {
+    width: 300px;
+    background-color: #1e1e1e;
+    border-right: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    overflow-y: auto;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.sample-text-container {
+    margin-bottom: 24px;
+}
+
+.sample-text-label {
+    display: block;
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sample-text-input {
+    width: 100%;
+    background-color: #2d2d2d;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 8px 12px;
+    color: #eee;
+    font-size: 14px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.sample-text-input:focus {
+    border-color: #666;
+}
+
+.blocks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.block-card {
+    background-color: #252526;
+    border: 1px solid #333;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: #2d2d2d;
+    border-bottom: 1px solid #333;
+}
+
+.block-title-area {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+}
+
+.block-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ddd;
+}
+
+.tooltip-container {
+    display: flex;
+    align-items: center;
+    cursor: help;
+    position: relative;
+}
+
+.help-icon {
+    color: #666;
+    transition: color 0.2s;
+}
+
+.help-icon:hover {
+    color: #aaa;
+}
+
+.tooltip {
+    position: absolute;
+    left: 24px;
+    top: -4px;
+    background-color: #111;
+    color: #ccc;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    border: 1px solid #444;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+}
+
+.insert-button {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.insert-button:hover {
+    background-color: #333;
+    color: #fff;
+}
+
+.block-preview {
+    padding: 12px;
+    font-size: 12px;
+    color: #ccc;
+    max-height: 150px;
+    overflow: hidden;
+}
+
+/* Adjust markdown preview styles inside the card to be smaller/contained if needed */
+.block-preview h1 {
+    font-size: 1.5em;
+    border-bottom: none;
+    margin-bottom: 0.5em;
+}
+
+.block-preview h2 {
+    font-size: 1.3em;
+    border-bottom: none;
+    margin-bottom: 0.5em;
+}
+
+.block-preview p {
+    margin-bottom: 0.5em;
+}
+
+.block-preview pre {
+    background-color: #111;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.block-preview hr {
+    border: none;
+    border-top: 1px solid #666;
+    margin: 8px 0;
+}
