@@ -1,0 +1,139 @@
+MD VIEWER UPDATE TASK – BLOCK PANEL + EXPORT OPTIONS
+
+Context
+- This project already has a working markdown editor + live preview UI in a dark theme.
+- The current layout is a two‑panel view: editor on the left, rendered markdown preview on the right.
+- You must KEEP the existing behaviour (free typing markdown, live preview, current styling), and ADD the new features described below without breaking what already works.
+
+High‑level Goal
+- Add a collapsible panel on the left side of the app that lets the user build documents using formatted building blocks (title, section heading, text, code, etc.).
+- Each block type shows a visual preview of how it will look, using shared sample text.
+- Add export buttons that let the user export the current markdown document as: .md, .docx, and .pdf.
+- Add hover tooltips for the new buttons and for the block descriptions. No click‑based popups.
+
+Layout and Flex Behaviour
+- The app should use a flexbox layout so that the new left panel, the existing editor, and the preview adjust dynamically.
+- When the left panel is OPEN:
+  - The left side of the screen is split into two vertical sections: the new block panel and the existing editor.
+  - The preview remains on the right side, similar to how it behaves now.
+- When the left panel is CLOSED:
+  - The app should behave like it does currently: editor and preview as the main split view, with no extra column.
+- The layout must remain responsive and usable on smaller window sizes.
+
+Left Panel Toggle
+- Add a button that opens and closes the left block panel.
+- Place the toggle in a logical, easy‑to‑discover location (for example, near the top of the layout).
+- The toggle must:
+  - Visually indicate whether the panel is open or closed.
+  - Have a hover tooltip that briefly explains its function (for example: “Show block tools” / “Hide block tools”).
+- The toggle must work without reloading the page or resetting the existing markdown content.
+
+Left Panel: Sample Text Input
+- At the top of the left panel, add a single text input field that represents “sample text”.
+- This field should:
+  - Use a default value that reads: ALKI Corp MD Viewer
+  - Be editable by the user.
+- Label this input clearly with “Sample text”:
+  - The label should be in a darker grey tone so it is visible but subtle against the dark background.
+- Behaviour:
+  - The current value of this sample text field must be used in all block previews further down in the left panel.
+  - When the user updates the sample text, all previews in the panel should update automatically to reflect the new value (no page refresh).
+
+Block Types (Format Blocks)
+- Inside the left panel, display a vertical list of block types.
+- Each block type is represented as a “card” with:
+  - A block title (for example: “Title”, “Section Title”, “Text”, “Code Block” – actual labels are up to you but should be short and clear).
+  - A small “?” icon next to the block title.
+  - A description tooltip that appears only when the “?” icon is hovered.
+  - A preview area that shows what that block would look like when rendered, using the current sample text.
+
+Required block types:
+1) Big Title block
+   - Represents the main document title style.
+   - Preview content:
+     - Use the sample text as the title content.
+     - Rendered to match how the main title would look in the final document (larger font, bold, etc., consistent with the existing theme).
+   - This block is intended for the document’s main title.
+
+2) Section Title block
+   - Represents a section heading style.
+   - Preview content:
+     - Use the sample text as the section heading content.
+     - Render it as a smaller heading than the main title but still visually prominent.
+   - This block is intended for numbered or named sections.
+
+3) Text block
+   - Represents a normal paragraph of body text.
+   - Preview content:
+     - Use the sample text as the paragraph content.
+     - Rendered as standard body text according to the app’s typography.
+
+4) Code block
+   - Represents a fenced code block with a language label.
+   - The block configuration must allow specifying a language string (for example: bash, dart, etc.).
+   - Preview content:
+     - Use the sample text inside the code area.
+     - Display it using the existing code styling (monospaced, code background, etc.).
+     - Show the language label visually in whatever way is currently used for syntax highlighting (or add one if none exists).
+   - This preview is for visual demonstration only; it should not run any commands.
+
+Optional block type (only if straightforward to add):
+5) Bullet list block
+   - Represents a basic bullet list.
+   - Preview content:
+     - Split the sample text in a simple, reasonable way (for example, one line per bullet) and render a short bullet list for preview purposes.
+   - Keep it simple and avoid overcomplicating parsing logic.
+
+Block Card Behaviour
+- Each block card must show:
+  - The block name (title).
+  - A “?” icon directly beside the title.
+  - A short description of what the block does and when to use it, shown ONLY on hover over the “?” icon.
+- Tooltip behaviour for the “?” icon:
+  - Display a small, lightweight tooltip near the icon.
+  - The tooltip must appear only while the cursor is hovered on the “?” icon.
+  - The tooltip must disappear automatically as soon as the cursor leaves the icon area.
+  - Do not use modals, alert boxes, or click‑to‑open dialogs for these descriptions.
+- Below the title and description area, show the preview of the rendered block, using the current sample text.
+- The preview is purely visual and is NOT directly editable from inside the card.
+
+Interaction with the Main Editor
+- The existing markdown editor remains the primary place where the user edits the actual document text.
+- Extend the block cards so the user can insert a block into the document:
+  - Add a clear control on each block card (for example, a button) that, when clicked, inserts the corresponding block structure into the current document.
+  - Insertion should use the current sample text as placeholder content, which the user can then edit directly in the editor.
+  - Insertion should happen at the current cursor position in the editor if possible; if not, it can safely append to the end of the document.
+- The live preview on the right side should continue to reflect the markdown in the editor as it changes, including blocks inserted via the left panel.
+
+Export Options (MD, DOCX, PDF)
+- Add export controls for the current markdown document.
+- Required export formats:
+  - Markdown (.md)
+  - Word document (.docx)
+  - PDF (.pdf)
+- The export buttons should:
+  - Use the current markdown content from the editor as the single source of truth.
+  - Generate the corresponding file type using that content.
+  - Trigger a standard file download in the browser for each format.
+- Implementation notes:
+  - If there is already export logic (for example, for markdown or PDF), reuse and extend it instead of rewriting from scratch.
+  - Add any necessary client‑side or server‑side conversions for DOCX and PDF as needed, but keep the interface clean for the user: they just click a button and receive the file.
+- UI and tooltips:
+  - Place the export buttons together in a logical toolbar area.
+  - Each export button must have a hover tooltip that clearly states what it does (for example: “Download as Markdown”, “Download as DOCX”, “Download as PDF”).
+  - Tooltips must appear only on hover and disappear when the cursor leaves, without requiring any clicks.
+
+Hover Text and Clean UX Requirements
+- All hover‑based help must:
+  - Appear quickly when the user hovers over the relevant icon or button.
+  - Disappear automatically when the cursor moves away.
+  - Not block clicks or interactions with other parts of the UI.
+- No modal dialogs, no click‑to‑close popups, and no persistent overlays for these descriptions.
+- The design should stay consistent with the existing dark theme:
+  - Use subtle contrast (for example, dark grey labels on darker backgrounds) so labels are visible but not distracting.
+  - Make sure tooltips and previews remain legible on the dark background.
+
+General Quality Notes
+- Do not remove or break any existing features of the markdown viewer.
+- Keep the code organized and readable; group the new panel, block definitions, and export logic in logical modules or components.
+- The final result should feel like a seamless extension of the current app: same theme, same UX style, just with an additional powerful left panel and clear export options.
