@@ -186,17 +186,25 @@
     padding: 8px 12px;
     background: none;
     border: none;
-    color: #ccc;
+    color: #888;
     font-size: 13px;
     cursor: pointer;
     text-align: left;
     border-radius: 4px;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
     width: 100%;
 }
 
 .export-item:hover {
     background-color: #333;
+    color: #fff;
+}
+
+.export-item svg {
+    transition: all 0.2s;
+}
+
+.export-item:hover svg {
     color: #fff;
 }
 

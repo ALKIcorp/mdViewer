@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Layout, Eye, Download, Upload, PanelLeft, File, ChevronDown, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, AlignJustify, Type } from 'lucide-react';
+import { FileText, Layout, Eye, Download, Upload, PanelLeft, File, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, AlignJustify, Type } from 'lucide-react';
 import type { ViewMode } from '../../App';
 import { exportToMarkdown, exportToPDF, exportToDOCX } from '../../utils/exportUtils';
 import { EditorView } from '@codemirror/view';
@@ -184,15 +184,13 @@ export const TopBar: React.FC<TopBarProps> = ({
                         <input type="file" accept=".md,.txt" onChange={handleFileUpload} hidden />
                     </label>
 
-                    <div className="export-dropdown-container" onMouseLeave={() => setIsExportMenuOpen(false)}>
+                    <div className="export-dropdown-container">
                         <button
-                            className={`btn btn - icon export -trigger ${isExportMenuOpen ? 'active' : ''} `}
+                            className={`btn btn-icon ${isExportMenuOpen ? 'active' : ''}`}
                             onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
                             title="Export"
                         >
                             <Download className="icon" />
-                            <span className="btn-label">Export</span>
-                            <ChevronDown size={14} style={{ marginLeft: 4 }} />
                         </button>
 
                         {isExportMenuOpen && (
