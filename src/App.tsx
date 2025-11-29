@@ -20,12 +20,18 @@ function App() {
 
   const handleInsertBlock = useCallback((text: string) => {
     if (editorView) {
+      // Get the current cursor position
+      const currentPos = editorView.state.selection.main.head;
+
+      // Insert at cursor position
       const transaction = editorView.state.update({
-        changes: { from: editorView.state.doc.length, insert: '\n' + text },
-        selection: { anchor: editorView.state.doc.length + 1 + text.length }
+        changes: { from: currentPos, insert: text },
+        selection: { anchor: currentPos + text.length }
       });
       editorView.dispatch(transaction);
+      editorView.focus(); // Focus the editor after insertion
     } else {
+      // Fallback for when editorView is not available (e.g., in LiveView mode)
       setMarkdownContent((prev) => prev + '\n' + text);
     }
   }, [editorView]);

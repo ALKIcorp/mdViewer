@@ -10,6 +10,7 @@ interface BlockCardProps {
     onInsert: () => void;
     draggable?: boolean;
     onDragStart?: (e: React.DragEvent) => void;
+    onDragEnd?: (e: React.DragEvent) => void;
 }
 
 export const BlockCard: React.FC<BlockCardProps> = ({
@@ -19,6 +20,7 @@ export const BlockCard: React.FC<BlockCardProps> = ({
     onInsert,
     draggable,
     onDragStart,
+    onDragEnd,
 }) => {
     const [showTooltip, setShowTooltip] = useState(false);
 
@@ -27,6 +29,7 @@ export const BlockCard: React.FC<BlockCardProps> = ({
             className="block-card"
             draggable={draggable}
             onDragStart={onDragStart}
+            onDragEnd={onDragEnd}
         >
             <div className="block-header">
                 <div className="block-title-area">

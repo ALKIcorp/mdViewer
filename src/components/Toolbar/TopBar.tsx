@@ -298,71 +298,174 @@ export const TopBar: React.FC<TopBarProps> = ({
             }
             case 'align-center': {
                 if (activeFormats.alignCenter) {
-                    // Remove center alignment
-                    const lineText = line.text;
-                    const newText = lineText.replace(/<div align=["']center["']>\s*/, '').replace(/\s*<\/div>/, '');
+                    // Remove center alignment - find the entire <div> block
+                    const doc = editorView.state.doc;
+                    let searchFrom = selection.from;
+                    let searchTo = selection.to;
+
+                    // Expand search to find the complete div tags
+                    for (let i = searchFrom; i >= Math.max(0, searchFrom - 200); i--) {
+                        const text = doc.sliceString(i, i + 20);
+                        if (text.startsWith('<div align="center">') || text.startsWith("<div align='center'>")) {
+                            searchFrom = i;
+                            break;
+                        }
+                    }
+
+                    for (let i = searchTo; i <= Math.min(doc.length, searchTo + 200); i++) {
+                        const text = doc.sliceString(i - 6, i);
+                        if (text.endsWith('</div>')) {
+                            searchTo = i;
+                            break;
+                        }
+                    }
+
+                    const fullText = doc.sliceString(searchFrom, searchTo);
+                    const unwrapped = fullText
+                        .replace(/^<div align=["']center["']>\s*/, '')
+                        .replace(/\s*<\/div>$/, '');
+
                     editorView.dispatch({
-                        changes: { from: line.from, to: line.to, insert: newText },
-                        selection: { anchor: line.from + newText.length }
+                        changes: { from: searchFrom, to: searchTo, insert: unwrapped },
+                        selection: { anchor: searchFrom + unwrapped.length }
                     });
                     editorView.focus();
                     return;
                 }
-                // Add center alignment
-                if (selectedText) {
-                    textToInsert = `<div align="center">\n${selectedText}\n</div>`;
-                } else {
-                    textToInsert = '<div align="center">\ntext\n</div>';
+                // Add center alignment - wrap the selection or current line
+                const textToWrap = selectedText || line.text || 'text';
+                textToInsert = `<div align="center">${textToWrap}</div>`;
+
+                // If no selection, replace the entire line
+                if (!selectedText) {
+                    fromPos = line.from;
+                    toPos = line.to;
                 }
                 newCursorPos = fromPos + textToInsert.length;
                 break;
             }
             case 'align-right': {
                 if (activeFormats.alignRight) {
-                    const lineText = line.text;
-                    const newText = lineText.replace(/<div align=["']right["']>\s*/, '').replace(/\s*<\/div>/, '');
+                    // Remove right alignment
+                    const doc = editorView.state.doc;
+                    let searchFrom = selection.from;
+                    let searchTo = selection.to;
+
+                    for (let i = searchFrom; i >= Math.max(0, searchFrom - 200); i--) {
+                        const text = doc.sliceString(i, i + 19);
+                        if (text.startsWith('<div align="right">') || text.startsWith("<div align='right'>")) {
+                            searchFrom = i;
+                            break;
+                        }
+                    }
+
+                    for (let i = searchTo; i <= Math.min(doc.length, searchTo + 200); i++) {
+                        const text = doc.sliceString(i - 6, i);
+                        if (text.endsWith('</div>')) {
+                            searchTo = i;
+                            break;
+                        }
+                    }
+
+                    const fullText = doc.sliceString(searchFrom, searchTo);
+                    const unwrapped = fullText
+                        .replace(/^<div align=["']right["']>\s*/, '')
+                        .replace(/\s*<\/div>$/, '');
+
                     editorView.dispatch({
-                        changes: { from: line.from, to: line.to, insert: newText },
-                        selection: { anchor: line.from + newText.length }
+                        changes: { from: searchFrom, to: searchTo, insert: unwrapped },
+                        selection: { anchor: searchFrom + unwrapped.length }
                     });
                     editorView.focus();
                     return;
                 }
-                if (selectedText) {
-                    textToInsert = `<div align="right">\n${selectedText}\n</div>`;
-                } else {
-                    textToInsert = '<div align="right">\ntext\n</div>';
+                const textToWrap = selectedText || line.text || 'text';
+                textToInsert = `<div align="right">${textToWrap}</div>`;
+
+                if (!selectedText) {
+                    fromPos = line.from;
+                    toPos = line.to;
                 }
                 newCursorPos = fromPos + textToInsert.length;
                 break;
             }
             case 'align-justify': {
                 if (activeFormats.alignJustify) {
-                    const lineText = line.text;
-                    const newText = lineText.replace(/<div align=["']justify["']>\s*/, '').replace(/\s*<\/div>/, '');
+                    // Remove justify alignment
+                    const doc = editorView.state.doc;
+                    let searchFrom = selection.from;
+                    let searchTo = selection.to;
+
+                    for (let i = searchFrom; i >= Math.max(0, searchFrom - 200); i--) {
+                        const text = doc.sliceString(i, i + 21);
+                        if (text.startsWith('<div align="justify">') || text.startsWith("<div align='justify'>")) {
+                            searchFrom = i;
+                            break;
+                        }
+                    }
+
+                    for (let i = searchTo; i <= Math.min(doc.length, searchTo + 200); i++) {
+                        const text = doc.sliceString(i - 6, i);
+                        if (text.endsWith('</div>')) {
+                            searchTo = i;
+                            break;
+                        }
+                    }
+
+                    const fullText = doc.sliceString(searchFrom, searchTo);
+                    const unwrapped = fullText
+                        .replace(/^<div align=["']justify["']>\s*/, '')
+                        .replace(/\s*<\/div>$/, '');
+
                     editorView.dispatch({
-                        changes: { from: line.from, to: line.to, insert: newText },
-                        selection: { anchor: line.from + newText.length }
+                        changes: { from: searchFrom, to: searchTo, insert: unwrapped },
+                        selection: { anchor: searchFrom + unwrapped.length }
                     });
                     editorView.focus();
                     return;
                 }
-                if (selectedText) {
-                    textToInsert = `<div align="justify">\n${selectedText}\n</div>`;
-                } else {
-                    textToInsert = '<div align="justify">\ntext\n</div>';
+                const textToWrap = selectedText || line.text || 'text';
+                textToInsert = `<div align="justify">${textToWrap}</div>`;
+
+                if (!selectedText) {
+                    fromPos = line.from;
+                    toPos = line.to;
                 }
                 newCursorPos = fromPos + textToInsert.length;
                 break;
             }
             case 'align-left': {
                 // Remove any alignment
-                const lineText = line.text;
-                const newText = lineText.replace(/<div align=["'](center|right|justify)["']>\s*/, '').replace(/\s*<\/div>/, '');
-                if (newText !== lineText) {
+                const doc = editorView.state.doc;
+                let searchFrom = selection.from;
+                let searchTo = selection.to;
+
+                // Look for any alignment div
+                for (let i = searchFrom; i >= Math.max(0, searchFrom - 200); i--) {
+                    const text = doc.sliceString(i, i + 25);
+                    if (text.match(/<div align=["'](center|right|justify)["']>/)) {
+                        searchFrom = i;
+                        break;
+                    }
+                }
+
+                for (let i = searchTo; i <= Math.min(doc.length, searchTo + 200); i++) {
+                    const text = doc.sliceString(i - 6, i);
+                    if (text.endsWith('</div>')) {
+                        searchTo = i;
+                        break;
+                    }
+                }
+
+                const fullText = doc.sliceString(searchFrom, searchTo);
+                if (fullText.match(/<div align=["'](center|right|justify)["']>/)) {
+                    const unwrapped = fullText
+                        .replace(/^<div align=["'](center|right|justify)["']>\s*/, '')
+                        .replace(/\s*<\/div>$/, '');
+
                     editorView.dispatch({
-                        changes: { from: line.from, to: line.to, insert: newText },
-                        selection: { anchor: line.from + newText.length }
+                        changes: { from: searchFrom, to: searchTo, insert: unwrapped },
+                        selection: { anchor: searchFrom + unwrapped.length }
                     });
                 }
                 editorView.focus();

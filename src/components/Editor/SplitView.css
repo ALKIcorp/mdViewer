@@ -15,7 +15,27 @@
 .editor-pane {
     border-right: 1px solid var(--border-color);
     padding: 0;
+    position: relative;
+    /* Required for absolute positioning of indicator */
     /* CodeMirror handles padding */
+}
+
+/* Drag insertion indicator */
+.drag-insert-indicator {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            #007acc 20%,
+            #007acc 80%,
+            transparent 100%);
+    z-index: 1000;
+    pointer-events: none;
+    box-shadow: 0 0 6px rgba(0, 122, 204, 0.8);
+    transition: top 0.05s ease-out;
+    opacity: 0.9;
 }
 
 .codemirror-wrapper {

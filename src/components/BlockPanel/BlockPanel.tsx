@@ -54,6 +54,16 @@ export const BlockPanel: React.FC<BlockPanelProps> = ({ isOpen, onInsert }) => {
     const handleDragStart = (e: React.DragEvent, content: string) => {
         e.dataTransfer.setData('text/plain', content);
         e.dataTransfer.effectAllowed = 'copy';
+
+        // Add visual feedback
+        const target = e.currentTarget as HTMLElement;
+        target.style.opacity = '0.5';
+    };
+
+    const handleDragEnd = (e: React.DragEvent) => {
+        // Remove visual feedback
+        const target = e.currentTarget as HTMLElement;
+        target.style.opacity = '1';
     };
 
     return (
@@ -77,6 +87,7 @@ export const BlockPanel: React.FC<BlockPanelProps> = ({ isOpen, onInsert }) => {
                         onInsert={() => onInsert(block.insertContent)}
                         draggable={true}
                         onDragStart={(e) => handleDragStart(e, block.insertContent)}
+                        onDragEnd={handleDragEnd}
                     />
                 ))}
             </div>
