@@ -18,9 +18,15 @@ interface SplitViewProps {
 
 export const SplitView: React.FC<SplitViewProps> = ({ content, onChange, setEditorView, editorView }) => {
     const editorPaneRef = useRef<HTMLDivElement>(null);
+    const previewPaneRef = useRef<HTMLDivElement>(null);
+    const dividerRef = useRef<HTMLDivElement>(null);
     const insertLineRef = useRef<HTMLDivElement>(null);
     const [isDragging, setIsDragging] = useState(false);
     const trackedInsertPosRef = useRef<number | null>(null);
+
+    // Divider drag state
+    const [isDraggingDivider, setIsDraggingDivider] = useState(false);
+    const [editorWidth, setEditorWidth] = useState<number>(50); // percentage
 
     // Calculate line position based on mouse Y coordinate
     const calculateInsertPosition = (clientY: number): number | null => {
@@ -128,11 +134,63 @@ export const SplitView: React.FC<SplitViewProps> = ({ content, onChange, setEdit
         }
     }, [isDragging]);
 
+    // === Divider Resize Handlers ===
+    const handleDividerPointerDown = (e: React.PointerEvent) => {
+        e.preventDefault();
+        setIsDraggingDivider(true);
+
+        if (dividerRef.current) {
+            dividerRef.current.setPointerCapture(e.pointerId);
+        }
+
+        // Prevent text selection during drag
+        document.body.style.userSelect = 'none';
+        document.body.style.cursor = 'col-resize';
+    };
+
+    const handleDividerPointerMove = (e: PointerEvent) => {
+        if (!isDraggingDivider || !editorPaneRef.current) return;
+
+        const container = editorPaneRef.current.parentElement;
+        if (!container) return;
+
+        const containerRect = container.getBoundingClientRect();
+        const newEditorWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+
+        // Set minimum widths (20% each to keep both panes visible)
+        const minWidth = 20;
+        const maxWidth = 80;
+
+        if (newEditorWidth >= minWidth && newEditorWidth <= maxWidth) {
+            setEditorWidth(newEditorWidth);
+        }
+    };
+
+    const handleDividerPointerUp = () => {
+        setIsDraggingDivider(false);
+        document.body.style.userSelect = '';
+        document.body.style.cursor = '';
+    };
+
+    // Attach global pointer event listeners for divider dragging
+    useEffect(() => {
+        if (isDraggingDivider) {
+            window.addEventListener('pointermove', handleDividerPointerMove);
+            window.addEventListener('pointerup', handleDividerPointerUp);
+
+            return () => {
+                window.removeEventListener('pointermove', handleDividerPointerMove);
+                window.removeEventListener('pointerup', handleDividerPointerUp);
+            };
+        }
+    }, [isDraggingDivider]);
+
     return (
         <div className="split-view">
             <div
                 className="editor-pane"
                 ref={editorPaneRef}
+                style={{ width: `${editorWidth}%` }}
                 onDragEnter={handleDragEnter}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -158,7 +216,20 @@ export const SplitView: React.FC<SplitViewProps> = ({ content, onChange, setEdit
                     }}
                 />
             </div>
-            <div id="markdown-preview-container" className="preview-pane markdown-body">
+
+            {/* Draggable Divider */}
+            <div
+                ref={dividerRef}
+                className="split-view-divider"
+                onPointerDown={handleDividerPointerDown}
+            />
+
+            <div
+                id="markdown-preview-container"
+                className="preview-pane markdown-body"
+                ref={previewPaneRef}
+                style={{ width: `${100 - editorWidth}%` }}
+            >
                 <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
                     rehypePlugins={[rehypeRaw]}
