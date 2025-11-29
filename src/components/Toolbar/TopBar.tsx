@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Layout, Eye, Download, Upload, PanelLeft, File, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, AlignJustify, Type } from 'lucide-react';
+import { FileText, Layout, Eye, Download, Upload, Menu, File, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, AlignJustify, Type } from 'lucide-react';
 import type { ViewMode } from '../../App';
 import { exportToMarkdown, exportToPDF, exportToDOCX } from '../../utils/exportUtils';
 import { EditorView } from '@codemirror/view';
@@ -108,11 +108,11 @@ export const TopBar: React.FC<TopBarProps> = ({
         <div className="top-bar">
             <div className="logo-section">
                 <button
-                    className={`icon - btn ${isBlockPanelOpen ? 'active' : ''} `}
+                    className={`icon-btn ${isBlockPanelOpen ? 'active' : ''}`}
                     onClick={toggleBlockPanel}
-                    title={isBlockPanelOpen ? "Hide block tools" : "Show block tools"}
+                    title={isBlockPanelOpen ? "Hide menu" : "Show menu"}
                 >
-                    <PanelLeft className="icon" />
+                    <Menu className="icon" />
                 </button>
                 <FileText className="icon" style={{ marginLeft: '12px' }} />
                 <span className="app-title">MD Live</span>
