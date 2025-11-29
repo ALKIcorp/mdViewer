@@ -5,6 +5,7 @@ import { exportToMarkdown, exportToPDF, exportToDOCX } from '../../utils/exportU
 import { EditorView } from '@codemirror/view';
 import './TopBar.css';
 import logoImage from '../../assets/mdviewer_triangle_logo.png';
+import { RotatingLogo } from '../RotatingLogo/RotatingLogo';
 
 interface TopBarProps {
     viewMode: ViewMode;
@@ -498,7 +499,12 @@ export const TopBar: React.FC<TopBarProps> = ({
                         )}
                     </div>
                 </button>
-                <img src={logoImage} alt="MD Viewer Logo" className="icon" style={{ marginLeft: '12px', width: '30px', height: '30px', objectFit: 'contain' }} />
+                <RotatingLogo
+                    src={logoImage}
+                    alt="MD Viewer Logo"
+                    className="icon"
+                    style={{ marginLeft: '12px', width: '30px', height: '30px', objectFit: 'contain' }}
+                />
                 <span className="app-title">MD Viewer</span>
             </div>
 

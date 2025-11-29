@@ -1,0 +1,13 @@
+.rotating {
+    animation: rotate-logo var(--rotation-duration) linear infinite;
+}
+
+@keyframes rotate-logo {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
