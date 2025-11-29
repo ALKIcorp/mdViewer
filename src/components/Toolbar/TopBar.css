@@ -35,6 +35,29 @@
     color: #fff;
 }
 
+.menu-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.menu-icon {
+    animation: iconFadeIn 0.3s ease-in-out;
+}
+
+@keyframes iconFadeIn {
+    0% {
+        opacity: 0;
+        transform: rotate(-90deg) scale(0.8);
+    }
+
+    100% {
+        opacity: 1;
+        transform: rotate(0deg) scale(1);
+    }
+}
+
 .app-title {
     font-weight: 600;
     font-size: 16px;
@@ -79,6 +102,11 @@
 
 .format-btn:hover {
     background-color: #444;
+    color: #fff;
+}
+
+.format-btn.active {
+    background-color: #007acc;
     color: #fff;
 }
 

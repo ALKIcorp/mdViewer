@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { FileText, Layout, Eye, Download, Upload, Menu, File, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, AlignJustify, Type } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { FileText, Layout, Eye, Download, Upload, Menu, ChevronLeft, File, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, AlignJustify, Type } from 'lucide-react';
 import type { ViewMode } from '../../App';
 import { exportToMarkdown, exportToPDF, exportToDOCX } from '../../utils/exportUtils';
 import { EditorView } from '@codemirror/view';
@@ -15,6 +15,16 @@ interface TopBarProps {
     editorView: EditorView | null;
 }
 
+interface FormatState {
+    bold: boolean;
+    italic: boolean;
+    underline: boolean;
+    strikethrough: boolean;
+    alignCenter: boolean;
+    alignRight: boolean;
+    alignJustify: boolean;
+}
+
 export const TopBar: React.FC<TopBarProps> = ({
     viewMode,
     setViewMode,
@@ -25,6 +35,81 @@ export const TopBar: React.FC<TopBarProps> = ({
     editorView
 }) => {
     const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+    const [activeFormats, setActiveFormats] = useState<FormatState>({
+        bold: false,
+        italic: false,
+        underline: false,
+        strikethrough: false,
+        alignCenter: false,
+        alignRight: false,
+        alignJustify: false
+    });
+
+    // Detect formatting at cursor position
+    const detectFormattingAtCursor = () => {
+        if (!editorView) return;
+
+        const selection = editorView.state.selection.main;
+        const pos = selection.from;
+        const doc = editorView.state.doc;
+
+        // Get the line containing the cursor
+        const line = doc.lineAt(pos);
+        const lineText = line.text;
+        const posInLine = pos - line.from;
+
+        // Get surrounding text for context (before and after cursor)
+        const beforeCursor = lineText.slice(Math.max(0, posInLine - 50), posInLine);
+        const afterCursor = lineText.slice(posInLine, Math.min(lineText.length, posInLine + 50));
+        const surroundingText = beforeCursor + afterCursor;
+
+        // Check for bold (**text**)
+        const boldPattern = /\*\*([^*]+)\*\*/;
+        const isBold = boldPattern.test(surroundingText) &&
+            beforeCursor.includes('**') && afterCursor.includes('**');
+
+        // Check for italic (*text*)
+        const italicPattern = /(?<!\*)\*(?!\*)([^*]+)\*(?!\*)/;
+        const hasItalicBefore = !!beforeCursor.match(/(?<!\*)\*(?!\*)/);
+        const hasItalicAfter = !!afterCursor.match(/\*(?!\*)/);
+        const isItalic = italicPattern.test(surroundingText) && hasItalicBefore && hasItalicAfter;
+
+        // Check for underline (<u>text</u>)
+        const isUnderline = beforeCursor.includes('<u>') && afterCursor.includes('</u>');
+
+        // Check for strikethrough (~~text~~)
+        const isStrikethrough = beforeCursor.includes('~~') && afterCursor.includes('~~');
+
+        // Check for alignment
+        const isAlignCenter = lineText.includes('<div align="center">') || lineText.includes("align='center'");
+        const isAlignRight = lineText.includes('<div align="right">') || lineText.includes("align='right'");
+        const isAlignJustify = lineText.includes('<div align="justify">') || lineText.includes("align='justify'");
+
+        setActiveFormats({
+            bold: isBold,
+            italic: isItalic,
+            underline: isUnderline,
+            strikethrough: isStrikethrough,
+            alignCenter: isAlignCenter,
+            alignRight: isAlignRight,
+            alignJustify: isAlignJustify
+        });
+    };
+
+    // Update active formats when selection changes
+    useEffect(() => {
+        if (!editorView) return;
+
+        // Initial detection
+        detectFormattingAtCursor();
+
+        // Set up a listener to detect formatting changes
+        const intervalId = setInterval(() => {
+            detectFormattingAtCursor();
+        }, 100); // Check every 100ms for cursor/selection changes
+
+        return () => clearInterval(intervalId);
+    }, [editorView]);
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -40,68 +125,257 @@ export const TopBar: React.FC<TopBarProps> = ({
         }
     };
 
-    const insertFormat = (format: string) => {
+    const toggleFormat = (format: string) => {
         if (!editorView) return;
 
         const selection = editorView.state.selection.main;
         const selectedText = editorView.state.sliceDoc(selection.from, selection.to);
+
+        // Get extended context for detection
+        const doc = editorView.state.doc;
+        const line = doc.lineAt(selection.from);
+
         let textToInsert = '';
-        let newSelectionOffset = 0;
+        let fromPos = selection.from;
+        let toPos = selection.to;
+        let newCursorPos = selection.from;
 
         switch (format) {
-            case 'bold':
-                textToInsert = `** ${selectedText || 'text'}** `;
-                newSelectionOffset = selectedText ? 0 : 2; // Cursor inside if empty
+            case 'bold': {
+                if (activeFormats.bold) {
+                    // Remove bold - find and remove ** markers
+                    const beforePos = Math.max(line.from, selection.from - 100);
+                    const afterPos = Math.min(line.to, selection.to + 100);
+                    const contextText = editorView.state.sliceDoc(beforePos, afterPos);
+                    const relativeFrom = selection.from - beforePos;
+
+                    // Find the ** before cursor
+                    const beforeText = contextText.slice(0, relativeFrom);
+                    const afterText = contextText.slice(relativeFrom);
+                    const startMarker = beforeText.lastIndexOf('**');
+                    const endMarker = afterText.indexOf('**');
+
+                    if (startMarker !== -1 && endMarker !== -1) {
+                        const actualStart = beforePos + startMarker;
+                        const actualEnd = selection.from + endMarker + 2;
+                        const content = editorView.state.sliceDoc(actualStart + 2, actualEnd - 2);
+
+                        editorView.dispatch({
+                            changes: { from: actualStart, to: actualEnd, insert: content },
+                            selection: { anchor: actualStart + content.length }
+                        });
+                        editorView.focus();
+                        return;
+                    }
+                }
+                // Add bold
+                if (selectedText) {
+                    textToInsert = `**${selectedText}**`;
+                    newCursorPos = fromPos + textToInsert.length;
+                } else {
+                    textToInsert = '**text**';
+                    newCursorPos = fromPos + 2; // Position cursor inside **|text**
+                }
                 break;
-            case 'italic':
-                textToInsert = `* ${selectedText || 'text'}* `;
-                newSelectionOffset = selectedText ? 0 : 1;
+            }
+            case 'italic': {
+                if (activeFormats.italic) {
+                    // Remove italic
+                    const beforePos = Math.max(line.from, selection.from - 100);
+                    const afterPos = Math.min(line.to, selection.to + 100);
+                    const contextText = editorView.state.sliceDoc(beforePos, afterPos);
+                    const relativeFrom = selection.from - beforePos;
+
+                    const beforeText = contextText.slice(0, relativeFrom);
+                    const afterText = contextText.slice(relativeFrom);
+                    const startMarker = beforeText.lastIndexOf('*');
+                    const endMarker = afterText.indexOf('*');
+
+                    if (startMarker !== -1 && endMarker !== -1) {
+                        const actualStart = beforePos + startMarker;
+                        const actualEnd = selection.from + endMarker + 1;
+                        const content = editorView.state.sliceDoc(actualStart + 1, actualEnd - 1);
+
+                        editorView.dispatch({
+                            changes: { from: actualStart, to: actualEnd, insert: content },
+                            selection: { anchor: actualStart + content.length }
+                        });
+                        editorView.focus();
+                        return;
+                    }
+                }
+                // Add italic
+                if (selectedText) {
+                    textToInsert = `*${selectedText}*`;
+                    newCursorPos = fromPos + textToInsert.length;
+                } else {
+                    textToInsert = '*text*';
+                    newCursorPos = fromPos + 1;
+                }
                 break;
-            case 'underline':
-                textToInsert = `< u > ${selectedText || 'text'}</u > `;
-                newSelectionOffset = selectedText ? 0 : 3;
+            }
+            case 'underline': {
+                if (activeFormats.underline) {
+                    // Remove underline
+                    const beforePos = Math.max(line.from, selection.from - 100);
+                    const afterPos = Math.min(line.to, selection.to + 100);
+                    const contextText = editorView.state.sliceDoc(beforePos, afterPos);
+                    const relativeFrom = selection.from - beforePos;
+
+                    const beforeText = contextText.slice(0, relativeFrom);
+                    const afterText = contextText.slice(relativeFrom);
+                    const startMarker = beforeText.lastIndexOf('<u>');
+                    const endMarker = afterText.indexOf('</u>');
+
+                    if (startMarker !== -1 && endMarker !== -1) {
+                        const actualStart = beforePos + startMarker;
+                        const actualEnd = selection.from + endMarker + 4;
+                        const content = editorView.state.sliceDoc(actualStart + 3, actualEnd - 4);
+
+                        editorView.dispatch({
+                            changes: { from: actualStart, to: actualEnd, insert: content },
+                            selection: { anchor: actualStart + content.length }
+                        });
+                        editorView.focus();
+                        return;
+                    }
+                }
+                // Add underline
+                if (selectedText) {
+                    textToInsert = `<u>${selectedText}</u>`;
+                    newCursorPos = fromPos + textToInsert.length;
+                } else {
+                    textToInsert = '<u>text</u>';
+                    newCursorPos = fromPos + 3;
+                }
                 break;
-            case 'strikethrough':
-                textToInsert = `~~${selectedText || 'text'} ~~`;
-                newSelectionOffset = selectedText ? 0 : 2;
+            }
+            case 'strikethrough': {
+                if (activeFormats.strikethrough) {
+                    // Remove strikethrough
+                    const beforePos = Math.max(line.from, selection.from - 100);
+                    const afterPos = Math.min(line.to, selection.to + 100);
+                    const contextText = editorView.state.sliceDoc(beforePos, afterPos);
+                    const relativeFrom = selection.from - beforePos;
+
+                    const beforeText = contextText.slice(0, relativeFrom);
+                    const afterText = contextText.slice(relativeFrom);
+                    const startMarker = beforeText.lastIndexOf('~~');
+                    const endMarker = afterText.indexOf('~~');
+
+                    if (startMarker !== -1 && endMarker !== -1) {
+                        const actualStart = beforePos + startMarker;
+                        const actualEnd = selection.from + endMarker + 2;
+                        const content = editorView.state.sliceDoc(actualStart + 2, actualEnd - 2);
+
+                        editorView.dispatch({
+                            changes: { from: actualStart, to: actualEnd, insert: content },
+                            selection: { anchor: actualStart + content.length }
+                        });
+                        editorView.focus();
+                        return;
+                    }
+                }
+                // Add strikethrough
+                if (selectedText) {
+                    textToInsert = `~~${selectedText}~~`;
+                    newCursorPos = fromPos + textToInsert.length;
+                } else {
+                    textToInsert = '~~text~~';
+                    newCursorPos = fromPos + 2;
+                }
                 break;
-            case 'uppercase':
+            }
+            case 'uppercase': {
                 textToInsert = selectedText.toUpperCase();
+                newCursorPos = fromPos + textToInsert.length;
                 break;
-            case 'lowercase':
+            }
+            case 'lowercase': {
                 textToInsert = selectedText.toLowerCase();
+                newCursorPos = fromPos + textToInsert.length;
                 break;
-            case 'align-left':
-                // Default alignment, just remove wrapper if exists? For now, just insert text.
-                // Or maybe we don't need to do anything for left align as it is default.
-                textToInsert = selectedText;
+            }
+            case 'align-center': {
+                if (activeFormats.alignCenter) {
+                    // Remove center alignment
+                    const lineText = line.text;
+                    const newText = lineText.replace(/<div align=["']center["']>\s*/, '').replace(/\s*<\/div>/, '');
+                    editorView.dispatch({
+                        changes: { from: line.from, to: line.to, insert: newText },
+                        selection: { anchor: line.from + newText.length }
+                    });
+                    editorView.focus();
+                    return;
+                }
+                // Add center alignment
+                if (selectedText) {
+                    textToInsert = `<div align="center">\n${selectedText}\n</div>`;
+                } else {
+                    textToInsert = '<div align="center">\ntext\n</div>';
+                }
+                newCursorPos = fromPos + textToInsert.length;
                 break;
-            case 'align-center':
-                textToInsert = `< div align = "center" >\n${selectedText || 'text'} \n</div > `;
+            }
+            case 'align-right': {
+                if (activeFormats.alignRight) {
+                    const lineText = line.text;
+                    const newText = lineText.replace(/<div align=["']right["']>\s*/, '').replace(/\s*<\/div>/, '');
+                    editorView.dispatch({
+                        changes: { from: line.from, to: line.to, insert: newText },
+                        selection: { anchor: line.from + newText.length }
+                    });
+                    editorView.focus();
+                    return;
+                }
+                if (selectedText) {
+                    textToInsert = `<div align="right">\n${selectedText}\n</div>`;
+                } else {
+                    textToInsert = '<div align="right">\ntext\n</div>';
+                }
+                newCursorPos = fromPos + textToInsert.length;
                 break;
-            case 'align-right':
-                textToInsert = `< div align = "right" >\n${selectedText || 'text'} \n</div > `;
+            }
+            case 'align-justify': {
+                if (activeFormats.alignJustify) {
+                    const lineText = line.text;
+                    const newText = lineText.replace(/<div align=["']justify["']>\s*/, '').replace(/\s*<\/div>/, '');
+                    editorView.dispatch({
+                        changes: { from: line.from, to: line.to, insert: newText },
+                        selection: { anchor: line.from + newText.length }
+                    });
+                    editorView.focus();
+                    return;
+                }
+                if (selectedText) {
+                    textToInsert = `<div align="justify">\n${selectedText}\n</div>`;
+                } else {
+                    textToInsert = '<div align="justify">\ntext\n</div>';
+                }
+                newCursorPos = fromPos + textToInsert.length;
                 break;
-            case 'align-justify':
-                textToInsert = `< div align = "justify" >\n${selectedText || 'text'} \n</div > `;
-                break;
+            }
+            case 'align-left': {
+                // Remove any alignment
+                const lineText = line.text;
+                const newText = lineText.replace(/<div align=["'](center|right|justify)["']>\s*/, '').replace(/\s*<\/div>/, '');
+                if (newText !== lineText) {
+                    editorView.dispatch({
+                        changes: { from: line.from, to: line.to, insert: newText },
+                        selection: { anchor: line.from + newText.length }
+                    });
+                }
+                editorView.focus();
+                return;
+            }
         }
 
         editorView.dispatch({
-            changes: { from: selection.from, to: selection.to, insert: textToInsert },
-            selection: { anchor: selection.from + textToInsert.length } // Move cursor to end
+            changes: { from: fromPos, to: toPos, insert: textToInsert },
+            selection: { anchor: newCursorPos }
         });
 
-        // If we need to place cursor inside for empty selection
-        if (!selectedText && newSelectionOffset > 0) {
-            editorView.dispatch({
-                selection: { anchor: selection.from + newSelectionOffset }
-            });
-        }
-
         editorView.focus();
-
-        // Update content state via callback if needed, but CodeMirror onChange handles it in SplitView
     };
 
     return (
@@ -112,7 +386,13 @@ export const TopBar: React.FC<TopBarProps> = ({
                     onClick={toggleBlockPanel}
                     title={isBlockPanelOpen ? "Hide menu" : "Show menu"}
                 >
-                    <Menu className="icon" />
+                    <div className="menu-icon-wrapper">
+                        {isBlockPanelOpen ? (
+                            <ChevronLeft className="icon menu-icon" />
+                        ) : (
+                            <Menu className="icon menu-icon" />
+                        )}
+                    </div>
                 </button>
                 <FileText className="icon" style={{ marginLeft: '12px' }} />
                 <span className="app-title">MD Live</span>
@@ -120,40 +400,80 @@ export const TopBar: React.FC<TopBarProps> = ({
 
             <div className="formatting-section">
                 <div className="format-group">
-                    <button className="format-btn" onMouseDown={(e) => { e.preventDefault(); insertFormat('bold'); }} title="Bold">
+                    <button
+                        className={`format-btn ${activeFormats.bold ? 'active' : ''}`}
+                        onMouseDown={(e) => { e.preventDefault(); toggleFormat('bold'); }}
+                        title="Bold"
+                    >
                         <Bold size={16} />
                     </button>
-                    <button className="format-btn" onMouseDown={(e) => { e.preventDefault(); insertFormat('italic'); }} title="Italic">
+                    <button
+                        className={`format-btn ${activeFormats.italic ? 'active' : ''}`}
+                        onMouseDown={(e) => { e.preventDefault(); toggleFormat('italic'); }}
+                        title="Italic"
+                    >
                         <Italic size={16} />
                     </button>
-                    <button className="format-btn" onMouseDown={(e) => { e.preventDefault(); insertFormat('underline'); }} title="Underline">
+                    <button
+                        className={`format-btn ${activeFormats.underline ? 'active' : ''}`}
+                        onMouseDown={(e) => { e.preventDefault(); toggleFormat('underline'); }}
+                        title="Underline"
+                    >
                         <Underline size={16} />
                     </button>
-                    <button className="format-btn" onMouseDown={(e) => { e.preventDefault(); insertFormat('strikethrough'); }} title="Strikethrough">
+                    <button
+                        className={`format-btn ${activeFormats.strikethrough ? 'active' : ''}`}
+                        onMouseDown={(e) => { e.preventDefault(); toggleFormat('strikethrough'); }}
+                        title="Strikethrough"
+                    >
                         <Strikethrough size={16} />
                     </button>
                 </div>
                 <div className="format-divider"></div>
                 <div className="format-group">
-                    <button className="format-btn" onMouseDown={(e) => { e.preventDefault(); insertFormat('uppercase'); }} title="UPPERCASE">
+                    <button
+                        className="format-btn"
+                        onMouseDown={(e) => { e.preventDefault(); toggleFormat('uppercase'); }}
+                        title="UPPERCASE"
+                    >
                         <Type size={16} />
                     </button>
-                    <button className="format-btn" onMouseDown={(e) => { e.preventDefault(); insertFormat('lowercase'); }} title="lowercase">
+                    <button
+                        className="format-btn"
+                        onMouseDown={(e) => { e.preventDefault(); toggleFormat('lowercase'); }}
+                        title="lowercase"
+                    >
                         <Type size={12} />
                     </button>
                 </div>
                 <div className="format-divider"></div>
                 <div className="format-group">
-                    <button className="format-btn" onMouseDown={(e) => { e.preventDefault(); insertFormat('align-left'); }} title="Align Left">
+                    <button
+                        className={`format-btn ${!activeFormats.alignCenter && !activeFormats.alignRight && !activeFormats.alignJustify ? 'active' : ''}`}
+                        onMouseDown={(e) => { e.preventDefault(); toggleFormat('align-left'); }}
+                        title="Align Left"
+                    >
                         <AlignLeft size={16} />
                     </button>
-                    <button className="format-btn" onMouseDown={(e) => { e.preventDefault(); insertFormat('align-center'); }} title="Align Center">
+                    <button
+                        className={`format-btn ${activeFormats.alignCenter ? 'active' : ''}`}
+                        onMouseDown={(e) => { e.preventDefault(); toggleFormat('align-center'); }}
+                        title="Align Center"
+                    >
                         <AlignCenter size={16} />
                     </button>
-                    <button className="format-btn" onMouseDown={(e) => { e.preventDefault(); insertFormat('align-right'); }} title="Align Right">
+                    <button
+                        className={`format-btn ${activeFormats.alignRight ? 'active' : ''}`}
+                        onMouseDown={(e) => { e.preventDefault(); toggleFormat('align-right'); }}
+                        title="Align Right"
+                    >
                         <AlignRight size={16} />
                     </button>
-                    <button className="format-btn" onMouseDown={(e) => { e.preventDefault(); insertFormat('align-justify'); }} title="Justify">
+                    <button
+                        className={`format-btn ${activeFormats.alignJustify ? 'active' : ''}`}
+                        onMouseDown={(e) => { e.preventDefault(); toggleFormat('align-justify'); }}
+                        title="Justify"
+                    >
                         <AlignJustify size={16} />
                     </button>
                 </div>
@@ -162,7 +482,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             <div className="actions-section">
                 <div className="view-toggle">
                     <button
-                        className={`toggle - btn ${viewMode === 'split' ? 'active' : ''} `}
+                        className={`toggle-btn ${viewMode === 'split' ? 'active' : ''}`}
                         onClick={() => setViewMode('split')}
                         title="Split View"
                     >
@@ -170,7 +490,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                         <span>Split</span>
                     </button>
                     <button
-                        className={`toggle - btn ${viewMode === 'live' ? 'active' : ''} `}
+                        className={`toggle-btn ${viewMode === 'live' ? 'active' : ''}`}
                         onClick={() => setViewMode('live')}
                         title="Live View"
                     >
