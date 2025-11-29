@@ -4,6 +4,7 @@ import type { ViewMode } from '../../App';
 import { exportToMarkdown, exportToPDF, exportToDOCX } from '../../utils/exportUtils';
 import { EditorView } from '@codemirror/view';
 import './TopBar.css';
+import logoImage from '../../assets/mdviewer_triangle_logo.png';
 
 interface TopBarProps {
     viewMode: ViewMode;
@@ -497,8 +498,8 @@ export const TopBar: React.FC<TopBarProps> = ({
                         )}
                     </div>
                 </button>
-                <FileText className="icon" style={{ marginLeft: '12px' }} />
-                <span className="app-title">MD Live</span>
+                <img src={logoImage} alt="MD Viewer Logo" className="icon" style={{ marginLeft: '12px', width: '30px', height: '30px', objectFit: 'contain' }} />
+                <span className="app-title">MD Viewer</span>
             </div>
 
             <div className="formatting-section">
