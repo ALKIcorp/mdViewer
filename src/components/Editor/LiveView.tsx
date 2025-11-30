@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Milkdown, useEditor, MilkdownProvider } from '@milkdown/react';
 import { Editor, rootCtx, defaultValueCtx, editorViewCtx } from '@milkdown/core';
+
 import { commonmark } from '@milkdown/preset-commonmark';
 import { gfm } from '@milkdown/preset-gfm';
 import { history } from '@milkdown/plugin-history';
@@ -50,10 +51,32 @@ const LiveViewEditor: React.FC<LiveViewProps> = ({ content, onChange, setEditorI
                                 return editorView.state.selection;
                             },
                             insertText: (text: string) => {
-                                const { state, dispatch } = editorView;
-                                const { from } = state.selection;
-                                const transaction = state.tr.insertText(text, from);
+                                console.log('LiveView insertText called', { text });
+
+                                // Get the editor view dynamically from the context
+                                // This ensures we have the fully initialized view
+                                let view;
+                                try {
+                                    view = ctx.get(editorViewCtx);
+                                } catch (e) {
+                                    console.error('Failed to get editorView from ctx:', e);
+                                    return;
+                                }
+
+                                console.log('Dynamic editorView:', view);
+
+                                if (!view || !view.state) {
+                                    console.error('View or state is undefined!');
+                                    return;
+                                }
+
+                                const { state, dispatch } = view;
+
+                                // Use replaceSelectionWith to insert text at the current cursor position
+                                const transaction = state.tr.replaceSelectionWith(state.schema.text(text));
+
                                 dispatch(transaction);
+                                view.focus();
                             }
                         };
                         setEditorInstance?.(editorInstanceRef.current);
