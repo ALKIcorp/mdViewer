@@ -9,6 +9,43 @@
     justify-content: center;
 }
 
+.live-view-editor {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+}
+
+/* Subtle vertical line indicator at text width limit */
+.live-view-editor::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 900px;
+    bottom: 0;
+    width: 1px;
+    background-color: rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Drag insertion indicator */
+.live-view-editor .drag-insert-indicator {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            #007acc 20%,
+            #007acc 80%,
+            transparent 100%);
+    z-index: 1000;
+    pointer-events: none;
+    box-shadow: 0 0 6px rgba(0, 122, 204, 0.8);
+    transition: top 0.05s ease-out;
+    opacity: 0.9;
+}
+
 /* Override Milkdown/Nord styles to match our theme */
 .milkdown {
     width: 100%;

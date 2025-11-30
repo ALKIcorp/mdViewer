@@ -13,28 +13,30 @@ function App() {
   const [viewMode, setViewMode] = useState<ViewMode>('split');
   const [isBlockPanelOpen, setIsBlockPanelOpen] = useState(false);
   const [editorView, setEditorView] = useState<EditorView | null>(null);
+  const [milkdownInstance, setMilkdownInstance] = useState<any>(null);
 
   const handleContentChange = useCallback((newContent: string) => {
     setMarkdownContent(newContent);
   }, []);
 
   const handleInsertBlock = useCallback((text: string) => {
-    if (editorView) {
-      // Get the current cursor position
+    if (viewMode === 'split' && editorView) {
+      // SplitView: Use CodeMirror API
       const currentPos = editorView.state.selection.main.head;
-
-      // Insert at cursor position
       const transaction = editorView.state.update({
         changes: { from: currentPos, insert: text },
         selection: { anchor: currentPos + text.length }
       });
       editorView.dispatch(transaction);
-      editorView.focus(); // Focus the editor after insertion
+      editorView.focus();
+    } else if (viewMode === 'live' && milkdownInstance) {
+      // LiveView: Use Milkdown API
+      milkdownInstance.insertText(text);
     } else {
-      // Fallback for when editorView is not available (e.g., in LiveView mode)
+      // Fallback: Append to end
       setMarkdownContent((prev) => prev + '\n' + text);
     }
-  }, [editorView]);
+  }, [viewMode, editorView, milkdownInstance]);
 
   return (
     <div className="app-container">
@@ -60,6 +62,7 @@ function App() {
           <LiveView
             content={markdownContent}
             onChange={handleContentChange}
+            setEditorInstance={setMilkdownInstance}
           />
         )}
       </main>

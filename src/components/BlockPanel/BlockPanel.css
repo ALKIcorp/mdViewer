@@ -8,6 +8,7 @@
     overflow-y: auto;
     height: 100%;
     box-sizing: border-box;
+    flex-shrink: 0;
 }
 
 .sample-text-container {
@@ -92,15 +93,15 @@
 
 .tooltip {
     position: absolute;
-    left: 24px;
-    top: -4px;
+    right: -10px;
+    top: 24px;
     background-color: #111;
     color: #ccc;
     padding: 6px 10px;
     border-radius: 4px;
     font-size: 12px;
     white-space: nowrap;
-    z-index: 1000;
+    z-index: 10000;
     border: 1px solid #444;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     pointer-events: none;
