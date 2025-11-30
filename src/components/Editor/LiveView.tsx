@@ -71,48 +71,47 @@ const LiveViewEditor: React.FC<LiveViewProps> = ({ content, onChange, setEditorI
         const editorView = editorInstanceRef.current.view;
         const liveViewRect = liveViewRef.current.getBoundingClientRect();
 
-        try {
-            // Use posAtCoords to find the document position
-            const pos = editorView.posAtCoords({ left: liveViewRect.left + 100, top: clientY });
-
-            if (pos === null || pos.pos === undefined) {
-                // If we're above or below the editor content
-                if (clientY < liveViewRect.top) {
-                    return 0; // Insert at the beginning
-                } else {
-                    return editorView.state.doc.content.size; // Insert at the end
+        // Simple approach: return position at start, middle, or end based on Y coordinate
+        // This is used for actual insertion, the indicator will show at mouse Y
+        if (clientY < liveViewRect.top + liveViewRect.height / 3) {
+            return 0; // Top third: insert at beginning
+        } else if (clientY > liveViewRect.top + (liveViewRect.height * 2 / 3)) {
+            // Bottom third: insert at end
+            try {
+                if (editorView.state?.doc?.content?.size !== undefined) {
+                    return editorView.state.doc.content.size;
                 }
+            } catch (e) {
+                console.debug('Could not get doc size');
             }
-
-            return pos.pos;
-        } catch (e) {
-            console.error('Error calculating insert position:', e);
-            return null;
+            return 9999; // Large number as fallback
+        } else {
+            // Middle third: insert in middle
+            try {
+                if (editorView.state?.doc?.content?.size !== undefined) {
+                    return Math.floor(editorView.state.doc.content.size / 2);
+                }
+            } catch (e) {
+                console.debug('Could not get doc size');
+            }
+            return 0; // Fallback to beginning
         }
     };
 
     // Update the visual indicator position
     const updateIndicatorPosition = (clientY: number) => {
-        if (!editorInstanceRef.current?.view || !liveViewRef.current || !insertLineRef.current) return;
+        if (!liveViewRef.current || !insertLineRef.current) return;
 
         const pos = calculateInsertPosition(clientY);
         if (pos === null) return;
 
-        try {
-            const editorView = editorInstanceRef.current.view;
-            const coords = editorView.coordsAtPos(pos);
+        // Always show indicator at mouse Y position (simple and reliable)
+        const liveViewRect = liveViewRef.current.getBoundingClientRect();
+        const relativeTop = clientY - liveViewRect.top + liveViewRef.current.scrollTop;
 
-            if (coords) {
-                const liveViewRect = liveViewRef.current.getBoundingClientRect();
-                const relativeTop = coords.top - liveViewRect.top + liveViewRef.current.scrollTop;
-
-                insertLineRef.current.style.top = `${relativeTop}px`;
-                insertLineRef.current.style.display = 'block';
-                trackedInsertPosRef.current = pos;
-            }
-        } catch (e) {
-            console.error('Error updating indicator:', e);
-        }
+        insertLineRef.current.style.top = `${relativeTop}px`;
+        insertLineRef.current.style.display = 'block';
+        trackedInsertPosRef.current = pos;
     };
 
     const handleDragEnter = (e: React.DragEvent) => {
