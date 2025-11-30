@@ -105,10 +105,35 @@ const LiveViewEditor: React.FC<LiveViewProps> = ({ content, onChange, setEditorI
         const pos = calculateInsertPosition(clientY);
         if (pos === null) return;
 
-        // Always show indicator at mouse Y position (simple and reliable)
         const liveViewRect = liveViewRef.current.getBoundingClientRect();
-        const relativeTop = clientY - liveViewRect.top + liveViewRef.current.scrollTop;
 
+        // Find the DOM element at the mouse position to snap to line boundaries
+        const targetElement = document.elementFromPoint(liveViewRect.left + 100, clientY);
+
+        if (targetElement) {
+            // Find the nearest paragraph or block-level element (line)
+            let lineElement = targetElement as HTMLElement | null;
+            while (lineElement && lineElement !== liveViewRef.current) {
+                const tagName = lineElement.tagName.toLowerCase();
+                // Check if this is a block-level element (paragraph, heading, list item, etc.)
+                if (tagName === 'p' || tagName === 'h1' || tagName === 'h2' || tagName === 'h3' ||
+                    tagName === 'h4' || tagName === 'h5' || tagName === 'h6' || tagName === 'li' ||
+                    tagName === 'pre' || tagName === 'blockquote' || tagName === 'div') {
+                    // Found a line element, snap to its top
+                    const lineRect = lineElement.getBoundingClientRect();
+                    const relativeTop = lineRect.top - liveViewRect.top + liveViewRef.current.scrollTop;
+
+                    insertLineRef.current.style.top = `${relativeTop}px`;
+                    insertLineRef.current.style.display = 'block';
+                    trackedInsertPosRef.current = pos;
+                    return;
+                }
+                lineElement = lineElement.parentElement;
+            }
+        }
+
+        // Fallback: use mouse position if no line element found
+        const relativeTop = clientY - liveViewRect.top + liveViewRef.current.scrollTop;
         insertLineRef.current.style.top = `${relativeTop}px`;
         insertLineRef.current.style.display = 'block';
         trackedInsertPosRef.current = pos;
